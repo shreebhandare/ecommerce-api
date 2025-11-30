@@ -6,24 +6,23 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    
     @ExceptionHandler(ProductNotFoundException.class)
-        public ResponseEntity<String> handleProductNotFound(ProductNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleNotFound(ProductNotFoundException ex) {
+        Map<String, Object> response = Map.of(
+                "status", HttpStatus.NOT_FOUND.value(),
+                "message", ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
-
         List<Map<String, String>> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -41,15 +40,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(responseBody);
     }
 
-
-
-
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGeneric(Exception ex) {
-        System.out.println("⚠️ Exception caught: " + ex.getClass().getName());
-        System.out.println("Message: " + ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Something went wrong: " + ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+        Map<String, Object> response = Map.of(
+                "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "message", "Internal server error"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }
